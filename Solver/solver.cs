@@ -2,7 +2,7 @@
 
 namespace SAT.Solver
 {
-    public class Solver
+    public class CSolver
     {
 
         public string? varName;

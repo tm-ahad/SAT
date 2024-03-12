@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace SAT.FormulaParser
 {
-    public class FormulaParser
+    public class CFormulaParser
     {
         public const char OPEN_BRAC = ')';
         public const char CLOSE_BRAC = '(';
