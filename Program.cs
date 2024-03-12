@@ -8,10 +8,10 @@ namespace SAT
     {
         static void Main(string[] args)
         {
-            if (args.Length == 1)
+            if (args.Length == 0)
             {
                 Console.WriteLine("POLYNOMIAL solution for satisfibility (A.K.A SAT) problem\n");
-                Console.WriteLine($"Usage: {args[0]} <formula>");
+                Console.WriteLine($"Usage: SAT.exe <formula>");
                 Console.WriteLine("Operators - ");
                 Console.WriteLine("| is used as the OR operator.");
                 Console.WriteLine("& is used as the AND operator.");
@@ -20,7 +20,7 @@ namespace SAT
                 return;
             }
 
-            string formula = args[1];
+            string formula = args[0];
 
             CGate tree = CFormulaParser.Parse(formula);
             CSolver solver = new CSolver();
