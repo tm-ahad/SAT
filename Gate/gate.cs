@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using SAT.OM;
+using System.Text;
 
 namespace SAT.Gate
 {
@@ -14,30 +15,14 @@ namespace SAT.Gate
             Type = type;
         }
 
-        public void PrintCGateTree(CGate node, int depth = 0)
+        public List<EOperandMatch> OM()
         {
-            if (node == null)
-                return;
-
-            // Indent based on depth
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < depth; i++)
+            switch (Type)
             {
-                sb.Append("  "); // Adjust spacing as needed
+                case GateType.OR: return [EOperandMatch.Same1, EOperandMatch.Diff];
+                case GateType.AND: return [EOperandMatch.Same1];
+                default: throw new Exception($"Cannot define om of gate {Type}");
             }
-
-            // Print current node with gate type
-            sb.Append($"[{node.Type}] ");
-            if (node.VariableName != null && node.VariableName != "")
-            {
-                sb.Append(": ");
-                sb.Append(node.VariableName);
-            }
-            Console.WriteLine(sb.ToString());
-
-            // Recursively print left and right subtrees
-            PrintCGateTree(node.Left, depth + 1);
-            PrintCGateTree(node.Right, depth + 1);
         }
     }
 }

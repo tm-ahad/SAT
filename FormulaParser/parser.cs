@@ -25,17 +25,11 @@ namespace SAT.FormulaParser
 
         public static CGate ParseNotBrace(string formula)
         {
-            string pat = @"(?=[!&|])";
-            string[] split = Regex.Split(formula, pat);
-
-            string first = split.First();
-            char firstOp = first[0];
-
-            if (firstOp == '!')
+            if (formula.StartsWith("!"))
             {
                 CGate varGate = new CGate(GateType.VARIABLE)
                 {
-                    VariableName = first[1..]
+                    VariableName = formula[1..]
                 };
 
                 return new CGate(GateType.NOT)
@@ -43,7 +37,21 @@ namespace SAT.FormulaParser
                     Left = varGate
                 };
             }
-            else if (char.IsLetter(firstOp))
+
+            string pat = @"(?=[!&|])";
+            string[] split = Regex.Split(formula, pat);
+
+            if (formula.Length == 1 & char.IsLetter(formula[0]))
+                return new CGate(GateType.VARIABLE)
+                {
+                    VariableName = formula,
+                };
+
+            string first = split.First();
+            char firstOp = first[0];
+
+            
+            if (char.IsLetter(firstOp))
             {
                 string firstName = firstOp.ToString();
 
@@ -74,13 +82,17 @@ namespace SAT.FormulaParser
             throw new Exception("Invalid formula");
         }
 
-        public static CGate Parse(string formula)
+        public static CGate Parse
+            (
+                string formula, 
+                string pattern = @"\((?>[^()]+|\((?<Depth>)|\)(?<-Depth>))*(?(Depth)(?!))\)",
+                bool isFirst = true
+            )
         {
             if (string.IsNullOrEmpty(formula))
                 throw new Exception("Empty formula is not allowed");
 
             formula = formula.Replace(" ", "");
-            string pattern = @"\((?>[^()]+|\((?<Depth>)|\)(?<-Depth>))*(?(Depth)(?!))\)";
 
             Regex reg = new Regex(pattern);
             MatchCollection match = reg.Matches(formula);
@@ -89,7 +101,8 @@ namespace SAT.FormulaParser
 
             if (match.Count == 0)
             {
-                return ParseNotBrace(formula);
+                string alphabetRegex = @"[A-Za-z]";
+                return Parse(formula, alphabetRegex, false);
             }
             else 
             {
@@ -97,11 +110,21 @@ namespace SAT.FormulaParser
 
                 foreach (Match m in match)
                 {
-                    string brac = m.ToString();
-                    int end = brac.Count() - 1;
-                    
-                    brac = brac[1..end];
-                    gateList.Add(Parse(brac));
+                    if (isFirst)
+                    {
+                        string brac = m.Value;
+                        int end = brac.Count() - 1;
+
+                        brac = brac[1..end];
+                        gateList.Add(Parse(brac));
+                    }
+                    else 
+                    {
+                        gateList.Add(new CGate(GateType.VARIABLE)
+                        {
+                            VariableName = m.Value,
+                        });
+                    }
                 }
 
                 var list = formula.Where(c => c == '!');

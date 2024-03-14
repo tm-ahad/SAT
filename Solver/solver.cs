@@ -1,87 +1,101 @@
 ﻿using SAT.Gate;
+using SAT.OM;
 
 namespace SAT.Solver
 {
     public class CSolver
     {
-
         public string? varName;
-        static bool SetsAreEqual<T>(HashSet<T> set1, HashSet<T> set2)
-        {
-            if (set1.Count != set2.Count)
-                return false;
 
-            return set1.SetEquals(set2);
+        static List<EOperandMatch> CommonOM(List<EOperandMatch> a, List<EOperandMatch> b)
+        {
+            return a.Intersect(b).ToList();
         }
 
-        public bool isGateSuperSet(CGate a, CGate b) 
+        static bool SetsAreEqual(HashSet<string> a, HashSet<string> b)
         {
-            if (a.Type == GateType.NOT | b.Type == GateType.NOT)
+            if (a.Count != b.Count) return false;
+            return a.SetEquals(b);
+        }
+
+        public SolutionData Solve(CGate tree)
+        {
+            if (tree.VariableName != null)
             {
-                CGate? sup = a.Type == GateType.NOT ? a.Left : b.Type == GateType.NOT ? b.Left : null;
-                CGate other = sup == a.Left ? b : a;
-
-                if (sup.Type == other.Type) return false;
-                if (sup.Type == GateType.OR & other.Type == GateType.AND) return false;
-
-                return true;
-            }
-
-            if (a.Type == b.Type) return true;
-            if (a.Type == GateType.OR & b.Type == GateType.AND) return true;
-
-            return false;
-        }
-
-        public Tuple<bool, HashSet<string>> Solve(CGate tree)
-        {
-            if (tree.VariableName != null) 
-            { 
                 HashSet<string> vars = [tree.VariableName];
+                List<EOperandMatch> oms = [EOperandMatch.Diff, EOperandMatch.Same1];
 
                 if (varName == tree.VariableName)
                 {
-                    return Tuple.Create(true, vars);
+                    return new SolutionData 
+                    {
+                        OMS = oms,
+                        isSatisfiable = true,
+                        Variables = vars
+                    };
                 }
                 else 
                 {
                     varName = tree.VariableName;
-                    return Tuple.Create(true, vars);
+                    return new SolutionData
+                    {
+                        OMS = oms,
+                        isSatisfiable = true,
+                        Variables = vars
+                    };
                 }
             }
 
             GateType gateType = tree.Type ?? GateType.NONE;
 
-            switch (gateType) 
+            switch (gateType)
             {
                 case GateType.AND:
 
                     var leftSol = Solve(tree.Left);
                     var rightSol = Solve(tree.Right);
 
-                    bool isEqForTrue = SetsAreEqual(leftSol.Item2, rightSol.Item2) ? 
-                        isGateSuperSet(tree.Left, tree.Right) : true;
+                    List<EOperandMatch> SAT = CommonOM(leftSol.OMS, rightSol.OMS);
+                    bool isSAT = SetsAreEqual(leftSol.Variables, rightSol.Variables) ? SAT.Any() : true;
                
-                    leftSol.Item2.UnionWith(rightSol.Item2);
-                    var mergedVars = leftSol.Item2;
+                    leftSol.Variables.UnionWith(rightSol.Variables);
+                    var mergedVars = leftSol.Variables;
 
-                    return Tuple.Create(isEqForTrue, mergedVars);
+                    return new SolutionData
+                    {
+                        OMS = SAT,
+                        isSatisfiable = isSAT,
+                        Variables = mergedVars
+                    };
 
                 case GateType.OR:
 
                     var solveLeft = Solve(tree.Left);
                     var solveRight = Solve(tree.Right);
 
-                    solveLeft.Item2.UnionWith(solveRight.Item2);
-                    var MergedVars = solveLeft.Item2;
+                    solveLeft.Variables.UnionWith(solveRight.Variables);
+                    solveLeft.OMS.AddRange(solveRight.OMS);
 
-                    return Tuple.Create(solveLeft.Item1 | solveRight.Item1, MergedVars);
+                    var MergedVars = solveLeft.Variables;
+                    var MergedOMS = solveLeft.OMS;
+
+                    bool isSat = SetsAreEqual(solveLeft.Variables, solveRight.Variables) ? 
+                        solveLeft.isSatisfiable | solveRight.isSatisfiable : true;
+
+                    return new SolutionData
+                    {
+                        OMS = MergedOMS,
+                        isSatisfiable = isSat,
+                        Variables = MergedVars
+                    };
 
                 case GateType.NOT:
-                    return Solve(tree.Left);
+
+                    var SolveLeft = Solve(tree.Left);
+                    SolveLeft.OMS = OperandMatch.XorOM(SolveLeft.OMS, true);
+                    return SolveLeft;
             }
 
-            // Just calming down the compiler
             throw new Exception("Impossible possibily!");
         }
     }
