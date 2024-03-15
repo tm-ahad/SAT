@@ -52,8 +52,8 @@ namespace SAT.Solver
             {
                 case GateType.AND:
 
-                    var leftSol = Solve(tree.Left);
-                    var rightSol = Solve(tree.Right);
+                    SolutionData leftSol = Solve(tree.Left);
+                    SolutionData rightSol = Solve(tree.Right);
 
                     List<EOperandMatch> SAT = CommonOM(leftSol.OMS, rightSol.OMS);
                     bool isSAT = SetsAreEqual(leftSol.Variables, rightSol.Variables) ? SAT.Any() : true;
@@ -70,8 +70,8 @@ namespace SAT.Solver
 
                 case GateType.OR:
 
-                    var solveLeft = Solve(tree.Left);
-                    var solveRight = Solve(tree.Right);
+                    SolutionData solveLeft = Solve(tree.Left);
+                    SolutionData solveRight = Solve(tree.Right);
 
                     solveLeft.Variables.UnionWith(solveRight.Variables);
                     solveLeft.OMS.AddRange(solveRight.OMS);
@@ -91,7 +91,7 @@ namespace SAT.Solver
 
                 case GateType.NOT:
 
-                    var SolveLeft = Solve(tree.Left);
+                    SolutionData SolveLeft = Solve(tree.Left);
                     SolveLeft.OMS = OperandMatch.XorOM(SolveLeft.OMS, true);
                     return SolveLeft;
             }
