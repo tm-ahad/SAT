@@ -1,2 +1,6 @@
-/bin
-/obj
+/.vs
+/sat/bin
+/sat/obj
+/.DS_Store
+/.DS_Store*
+/.DS_Store/*
