@@ -3,6 +3,8 @@ using System.Text.RegularExpressions;
 
 namespace SAT.FormulaParser
 {
+    using Tree = CGate<string>;
+
     public class CFormulaParser
     {
         public const char OPEN_BRAC = ')';
@@ -23,16 +25,16 @@ namespace SAT.FormulaParser
             throw new ArgumentException($"Invalid boolean operator '{op}'");
         }
 
-        public static CGate ParseNotBrace(string formula)
+        public static Tree ParseNotBrace(string formula)
         {
             if (formula.StartsWith("!"))
             {
-                CGate varGate = new CGate(GateType.VARIABLE)
+                Tree varGate = new Tree(GateType.VARIABLE)
                 {
                     VariableName = formula[1..]
                 };
 
-                return new CGate(GateType.NOT)
+                return new Tree(GateType.NOT)
                 {
                     Left = varGate
                 };
@@ -42,7 +44,7 @@ namespace SAT.FormulaParser
             string[] split = Regex.Split(formula, pat);
 
             if (formula.Length == 1 & char.IsLetter(formula[0]))
-                return new CGate(GateType.VARIABLE)
+                return new Tree(GateType.VARIABLE)
                 {
                     VariableName = formula,
                 };
@@ -55,7 +57,7 @@ namespace SAT.FormulaParser
             {
                 string firstName = firstOp.ToString();
 
-                CGate tree = new CGate(GateType.VARIABLE)
+                Tree tree = new Tree(GateType.VARIABLE)
                 {
                     VariableName = firstName
                 };
@@ -64,12 +66,12 @@ namespace SAT.FormulaParser
                 {
                     char oper = part[0];
                     string varName = part[1..];
-                    CGate right = new CGate(GateType.VARIABLE) 
+                    Tree right = new Tree(GateType.VARIABLE) 
                     { 
                         VariableName = varName 
                     };
 
-                    tree = new CGate(FromOperator(oper))
+                    tree = new Tree(FromOperator(oper))
                     {
                         Left = tree,
                         Right = right
@@ -82,7 +84,7 @@ namespace SAT.FormulaParser
             throw new Exception("Invalid formula");
         }
 
-        public static CGate Parse
+        public static Tree Parse
             (
                 string formula, 
                 string pattern = @"\((?>[^()]+|\((?<Depth>)|\)(?<-Depth>))*(?(Depth)(?!))\)",
@@ -106,7 +108,7 @@ namespace SAT.FormulaParser
             }
             else 
             {
-                List<CGate> gateList = [];
+                List<Tree> gateList = [];
 
                 foreach (Match m in match)
                 {
@@ -120,7 +122,7 @@ namespace SAT.FormulaParser
                     }
                     else 
                     {
-                        gateList.Add(new CGate(GateType.VARIABLE)
+                        gateList.Add(new Tree(GateType.VARIABLE)
                         {
                             VariableName = m.Value,
                         });
@@ -131,7 +133,7 @@ namespace SAT.FormulaParser
 
                 for (int i = 0; i < list.Count(); i++) 
                 {
-                    gateList[i] = new CGate(GateType.NOT)
+                    gateList[i] = new Tree(GateType.NOT)
                     {
                         Left = gateList[i]
                     };
@@ -143,10 +145,10 @@ namespace SAT.FormulaParser
                 {
                     char op = formula[i];
 
-                    CGate left = gateList[i];
-                    CGate right = gateList[i+1];
+                    Tree left = gateList[i];
+                    Tree right = gateList[i+1];
 
-                    gateList[i] = new CGate(FromOperator(op))
+                    gateList[i] = new Tree(FromOperator(op))
                     {
                         Left = left,
                         Right = right

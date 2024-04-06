@@ -1,4 +1,4 @@
-﻿using SAT.OM;
+﻿using SAT.Req;
 
 namespace SAT.Solver
 {
@@ -6,6 +6,7 @@ namespace SAT.Solver
     {
         public bool isSatisfiable;
         public HashSet<string> Variables = [];
-        public List<EOperandMatch> OMS = [];
+        public RequirementMap req = new RequirementMap();
+        public bool isNot;
     }
 }
