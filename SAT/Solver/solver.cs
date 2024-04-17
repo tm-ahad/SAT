@@ -1,98 +1,45 @@
 ﻿using SAT.Gate;
-using SAT.OM;
 
 namespace SAT.Solver
 {
     public class CSolver
     {
-        public string? varName;
-
-        public SolutionData Solve(CGate tree, bool isNOT)
+        public static SolutionData Solve(CGate tree)
         {
-            if (tree.VariableName != null)
+            if (tree.Variable != null)
             {
-                HashSet<string> vars = [tree.VariableName];
-                vars.
+                HashSet<string> vars = [tree.Variable];
+                MustSet mustSet = new MustSet();
+                mustSet.Add(tree.Variable);
 
-                if (varName == tree.VariableName)
+                return new SolutionData()
                 {
-                    return new SolutionData 
-                    {
-                        isSatisfiable = true,
-                        isNot = isNOT,
-                        req = new
-                        Variables = vars
-                    };
-                }
-                else 
-                {
-                    varName = tree.VariableName;
-                    return new SolutionData
-                    {
-                        OM = new IOperandMatch.Least(1, true),
-                        isSatisfiable = true,
-                        Variables = vars
-                    };
-                }
+                    satisfiction = ESaticfiction.Both,
+                    mustSet = mustSet,
+                    Variables = vars
+                };
             }
 
-            GateType gateType = tree.Type ?? GateType.NONE;
-
-            switch (gateType)
+            switch (tree.Type)
             {
                 case GateType.AND:
 
                     SolutionData leftSol = Solve(tree.Left);
                     SolutionData rightSol = Solve(tree.Right);
 
-                    if ()
+                    leftSol.Variables.UnionWith(rightSol.Variables);
 
-                    HashSet<string> leftVars = leftSol.Variables;
-                    HashSet<string> rightVars = rightSol.Variables;
-                    HashSet<string> intersect = rightSol.Variables.Intersect(leftSol.Variables);
-                    HashSet<string> combinedVars = leftVars.Union(rightVars).ToHashSet();
-
-                    if (intersect.Count == 0)
+                    if (!leftSol.mustSet.Merge(rightSol.mustSet)) 
                     {
-                        return new SolutionData()
-                        {
-                            isSatisfiable = leftSol.isSatisfiable & rightSol.isSatisfiable,
-                            Variables = combinedVars,
-                            req: lef
-                        }
-                    }
+                        return SolutionData.NotSatisfiable();
+                    };
+                    leftSol.mustSet.Add(tree.Literal);
 
-                    IOperandMatch OM;
-                    int leftSolLr = leftSol.OM.LeastVar(leftSol.Variables.Count);
-                    int rightSolLr = leftSol.OM.LeastVar(leftSol.Variables.Count);
-
-                    int intersectionLength = leftVars.Intersect(rightVars).Count();
-
-                    int maxLr = Math.Max(leftSolLr, rightSolLr);
-                    IOperandMatch maxOM = maxLr == leftSolLr ? leftSol.OM : rightSol.OM;
-
-                    if (intersectionLength >= maxLr) 
+                    return new SolutionData()
                     {
-                        OM = maxOM;
-                    }
-                    else 
-                    {
-                        bool a
-                        IOperandMatch lst = new Least((leftSolLr + rightSolLr) - intersectionLengthm, )
-                    }
-
-
-                    List<IOperandMatch> OMS = SetsAreEqual(leftSol.Variables, rightSol.Variables) ? leftSol.OM.High(rightSol.OM) :  ;
-                    bool isSAT = !SetsAreEqual(leftSol.Variables, rightSol.Variables) || SAT.Any();
-               
-                    leftSol.Variables.UnionWith(other: rightSol.Variables);
-                    var mergedVars = leftSol.Variables;
-
-                    return new SolutionData
-                    {
-                        OMS = SAT,
-                        isSatisfiable = isSAT,
-                        Variables = mergedVars
+                        satisfiction = CSaticfiction.AND(leftSol.satisfiction, rightSol.satisfiction),
+                        Variables = leftSol.Variables,
+                        mustSet = leftSol.mustSet
                     };
 
                 case GateType.OR:
@@ -100,14 +47,30 @@ namespace SAT.Solver
                     SolutionData solveLeft = Solve(tree.Left);
                     SolutionData solveRight = Solve(tree.Right);
 
-                    Requirement r = solveLeft.req.Low(solveRight.req);
-                    SolutionData ret = r == solveLeft.req ? solveLeft : solveRight;
+                    solveLeft.Variables.UnionWith(solveRight.Variables);
+                    if (solveLeft.satisfiction == ESaticfiction.None || solveRight.satisfiction == ESaticfiction.None)
+                    {
+                        return solveLeft.satisfiction == ESaticfiction.None ? solveRight : solveLeft;
+                    }
 
-                    return ret;
+                    MustSet mustSet = new MustSet();
+                    mustSet.Add(tree.Literal);
+
+                    return new SolutionData() 
+                    {
+                        Variables = solveLeft.Variables,
+                        satisfiction = CSaticfiction.OR(solveLeft.satisfiction, solveRight.satisfiction),
+                        mustSet = mustSet
+                    };
 
                 case GateType.NOT:
+
                     SolutionData SolveLeft = Solve(tree.Left);
-                    SolveLeft.req = SolveLeft.req.Invert();
+                    MustSet mustSet0 = new MustSet();
+                    _ = mustSet0.Add(tree.Literal);
+
+                    SolveLeft.satisfiction = CSaticfiction.NOT(SolveLeft.satisfiction);
+                    SolveLeft.mustSet = mustSet0;
                     return SolveLeft;
             }
 

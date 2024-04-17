@@ -1,12 +1,13 @@
 ﻿namespace SAT.Gate
 {
-    public class CGate<T>
+    public class CGate
     {
-        public GateType? Type { get; set; }
-        public CGate<T>? Left { get; set; }
-        public CGate<T>? Right { get; set; }
-        public T? VariableName { get; set; }
-
+        public required string Literal { get; set; }
+        public string? Variable { get; set; }
+        public GateType Type { get; set; }
+        public CGate? Right { get; set; }
+        public CGate? Left { get; set; }
+        
         public CGate(GateType type)
         {
             Type = type;
