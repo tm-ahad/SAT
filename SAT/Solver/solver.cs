@@ -29,7 +29,7 @@ namespace SAT.Solver
 
                     leftSol.Variables.UnionWith(rightSol.Variables);
 
-                    if (!leftSol.mustSet.Merge(rightSol.mustSet)) 
+                    if (leftSol.mustSet.Merge(rightSol.mustSet)) 
                     {
                         return SolutionData.NotSatisfiable();
                     };

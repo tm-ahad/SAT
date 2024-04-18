@@ -21,8 +21,8 @@ namespace SAT
             }
 
             string formula = args[0];
-            CGate tree = CFormulaParser.Parse(formula);
 
+            CGate tree = CFormulaParser.Parse(formula);
             bool res = CSolver.Solve(tree).isSatisfiable();
 
             if (res)
