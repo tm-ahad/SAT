@@ -9,14 +9,19 @@ namespace SAT.Solver
             if (tree.Variable != null)
             {
                 HashSet<string> vars = [tree.Variable];
-                MustSet mustSet = new MustSet();
+                OptionalRequirement orSet = new OptionalRequirement();
+                StrictRequirement mustSet = new StrictRequirement();
+
+
                 mustSet.Add(tree.Variable);
+                orSet.Add(tree.Variable);
 
                 return new SolutionData()
                 {
                     satisfiction = ESaticfiction.Both,
                     mustSet = mustSet,
-                    Variables = vars
+                    Variables = vars,
+                    orSet = orSet
                 };
             }
 
@@ -28,6 +33,7 @@ namespace SAT.Solver
                     SolutionData rightSol = Solve(tree.Right);
 
                     leftSol.Variables.UnionWith(rightSol.Variables);
+                    leftSol.orSet.Merge(rightSol.orSet);
 
                     if (leftSol.mustSet.Merge(rightSol.mustSet)) 
                     {
@@ -39,7 +45,8 @@ namespace SAT.Solver
                     {
                         satisfiction = CSaticfiction.AND(leftSol.satisfiction, rightSol.satisfiction),
                         Variables = leftSol.Variables,
-                        mustSet = leftSol.mustSet
+                        mustSet = leftSol.mustSet,
+                        orSet = leftSol.orSet
                     };
 
                 case GateType.OR:
@@ -48,29 +55,35 @@ namespace SAT.Solver
                     SolutionData solveRight = Solve(tree.Right);
 
                     solveLeft.Variables.UnionWith(solveRight.Variables);
+                    solveLeft.orSet.Merge(solveRight.orSet);
                     if (solveLeft.satisfiction == ESaticfiction.None || solveRight.satisfiction == ESaticfiction.None)
                     {
                         return solveLeft.satisfiction == ESaticfiction.None ? solveRight : solveLeft;
                     }
 
-                    MustSet mustSet = new MustSet();
+                    StrictRequirement mustSet = new StrictRequirement();
                     mustSet.Add(tree.Literal);
 
                     return new SolutionData() 
                     {
                         Variables = solveLeft.Variables,
                         satisfiction = CSaticfiction.OR(solveLeft.satisfiction, solveRight.satisfiction),
+                        orSet = solveLeft.orSet,
                         mustSet = mustSet
                     };
 
                 case GateType.NOT:
 
                     SolutionData SolveLeft = Solve(tree.Left);
-                    MustSet mustSet0 = new MustSet();
-                    _ = mustSet0.Add(tree.Literal);
-
+                    
+                    if (SolveLeft.mustSet.Merge(SolveLeft.orSet.Not()))
+                    {
+                        SolveLeft = SolutionData.NotSatisfiable();
+                    }
+                    
+                    SolveLeft.mustSet.Not();
                     SolveLeft.satisfiction = CSaticfiction.NOT(SolveLeft.satisfiction);
-                    SolveLeft.mustSet = mustSet0;
+
                     return SolveLeft;
             }
 

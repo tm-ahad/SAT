@@ -4,14 +4,16 @@
     {
         public required HashSet<string> Variables;
         public required ESaticfiction satisfiction;
-        public required MustSet mustSet;
+        public required StrictRequirement mustSet;
+        public required OptionalRequirement orSet;
 
         public static SolutionData NotSatisfiable()
         {
             return new SolutionData()
             {
                 satisfiction = ESaticfiction.None,
-                mustSet = new MustSet(),
+                mustSet = new StrictRequirement(),
+                orSet = new OptionalRequirement(),
                 Variables = []
             };
         }
