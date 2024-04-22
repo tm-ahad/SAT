@@ -33,13 +33,14 @@ namespace SAT.Solver
                     SolutionData rightSol = Solve(tree.Right);
 
                     leftSol.Variables.UnionWith(rightSol.Variables);
-                    leftSol.orSet.Merge(rightSol.orSet);
 
                     if (leftSol.mustSet.Merge(rightSol.mustSet)) 
                     {
                         return SolutionData.NotSatisfiable();
                     };
-                    leftSol.mustSet.Add(tree.Literal);
+
+                    leftSol.mustSet.Add(tree.Right.Literal);
+                    leftSol.mustSet.Add(tree.Left.Literal);
 
                     return new SolutionData()
                     {
@@ -62,7 +63,9 @@ namespace SAT.Solver
                     }
 
                     StrictRequirement mustSet = new StrictRequirement();
-                    mustSet.Add(tree.Literal);
+
+                    mustSet.Add(tree.Right.Literal);
+                    mustSet.Add(tree.Left.Literal);
 
                     return new SolutionData() 
                     {
