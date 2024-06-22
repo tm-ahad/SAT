@@ -1,37 +1,28 @@
 ﻿using SAT.FormulaParser;
+using System.Diagnostics;
 using SAT.Solver;
 using SAT.Gate;
 
-namespace SAT
+Console.WriteLine("Polynomial solution for satisfibility (A.K.A SAT) problem\n");
+Console.WriteLine("Operators - ");
+Console.WriteLine("| is used as the OR operator.");
+Console.WriteLine("& is used as the AND operator.");
+Console.WriteLine("! is used as the NOT operator.");
+Console.WriteLine("( and ) is used as brackets.");
+
+while (true)
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            if (args.Length == 0)
-            {
-                Console.WriteLine("POLYNOMIAL solution for satisfibility (A.K.A SAT) problem\n");
-                Console.WriteLine($"Usage: SAT.exe <formula>");
-                Console.WriteLine("Operators - ");
-                Console.WriteLine("| is used as the OR operator.");
-                Console.WriteLine("& is used as the AND operator.");
-                Console.WriteLine("! is used as the NOT operator.");
-                Console.WriteLine("( and ) is used as brackets.");
-                return;
-            }
+    Console.Write(">> ");
 
-            string formula = args[0];
+    string? formula = Console.ReadLine();
+    Stopwatch sw = Stopwatch.StartNew();
 
-            CGate tree = CFormulaParser.Parse(formula);
-            bool res = CSolver.Solve(tree).isSatisfiable();
+    CGate tree = CFormulaParser.Parse(formula);
+    CSolver solver = new(tree.Variables);
 
-            if (res)
-            {
-                Console.WriteLine($"formula \"{formula}\" is satisfiable.");
-                return;
-            }
+    bool? sat = solver.Solve(tree).IsSatisfiable();
+    sw.Stop();
 
-            Console.WriteLine($"formula \"{formula}\" is not satisfiable.");
-        }
-    }
+    Console.WriteLine(sat == true ? "satisfiable" : "not satisfiable");
+    Console.WriteLine($"{sw.ElapsedTicks / 10}μs");
 }

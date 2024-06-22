@@ -2,27 +2,41 @@
 
 namespace SAT.Solver
 {
-    public class CSolver
+    public class CSolver(int _vars)
     {
-        public static SolutionData Solve(CGate tree)
+        private const uint MinimumExpressionLengthRequiredForCaching = 5;
+        private readonly Dictionary<string, SolutionData> cache = [];
+        private readonly int vars = _vars;
+
+        public static string InvertS(string s) 
+        {
+            if (s.StartsWith('!'))
+            {
+                return s[1..];
+            }
+            else
+            {
+                return $"!{s}";
+            }
+        }
+
+        public SolutionData Solve(CGate tree)
         {
             if (tree.Variable != null)
             {
-                HashSet<string> vars = [tree.Variable];
-                OptionalRequirement orSet = new OptionalRequirement();
-                StrictRequirement mustSet = new StrictRequirement();
-
-
-                mustSet.Add(tree.Variable);
-                orSet.Add(tree.Variable);
+                GroupSet gr = new();
+                gr.AddInclsive(tree.Variable);
 
                 return new SolutionData()
                 {
-                    satisfiction = ESaticfiction.Both,
-                    mustSet = mustSet,
-                    Variables = vars,
-                    orSet = orSet
+                    Satisfiction = true,
+                    GroupSet = gr
                 };
+            }
+
+            if (cache.TryGetValue(tree.Literal, out SolutionData sol))
+            {
+                return sol;
             }
 
             switch (tree.Type)
@@ -32,63 +46,56 @@ namespace SAT.Solver
                     SolutionData leftSol = Solve(tree.Left);
                     SolutionData rightSol = Solve(tree.Right);
 
-                    leftSol.Variables.UnionWith(rightSol.Variables);
+                    leftSol.GroupSet.And(rightSol.GroupSet);
 
-                    if (leftSol.mustSet.Merge(rightSol.mustSet)) 
+                    sol = new SolutionData()
                     {
-                        return SolutionData.NotSatisfiable();
+                        Satisfiction = tree.Root ? leftSol.GroupSet.IsSatisfiable(vars) : null,
+                        GroupSet = leftSol.GroupSet,
                     };
-
-                    leftSol.mustSet.Add(tree.Right.Literal);
-                    leftSol.mustSet.Add(tree.Left.Literal);
-
-                    return new SolutionData()
-                    {
-                        satisfiction = CSaticfiction.AND(leftSol.satisfiction, rightSol.satisfiction),
-                        Variables = leftSol.Variables,
-                        mustSet = leftSol.mustSet,
-                        orSet = leftSol.orSet
-                    };
+                    break;
 
                 case GateType.OR:
 
-                    SolutionData solveLeft = Solve(tree.Left);
-                    SolutionData solveRight = Solve(tree.Right);
+                    SolutionData leftSol_ = Solve(tree.Left);
+                    SolutionData rightSol_ = Solve(tree.Right);
 
-                    solveLeft.Variables.UnionWith(solveRight.Variables);
-                    solveLeft.orSet.Merge(solveRight.orSet);
-                    if (solveLeft.satisfiction == ESaticfiction.None || solveRight.satisfiction == ESaticfiction.None)
+                    leftSol_.GroupSet.Or(rightSol_.GroupSet);
+
+                    sol = new SolutionData()
                     {
-                        return solveLeft.satisfiction == ESaticfiction.None ? solveRight : solveLeft;
-                    }
-
-                    StrictRequirement mustSet = new StrictRequirement();
-
-                    mustSet.Add(tree.Right.Literal);
-                    mustSet.Add(tree.Left.Literal);
-
-                    return new SolutionData() 
-                    {
-                        Variables = solveLeft.Variables,
-                        satisfiction = CSaticfiction.OR(solveLeft.satisfiction, solveRight.satisfiction),
-                        orSet = solveLeft.orSet,
-                        mustSet = mustSet
+                        Satisfiction = tree.Root ? leftSol_.GroupSet.IsSatisfiable(vars) : null,
+                        GroupSet = leftSol_.GroupSet,
                     };
+                    break;
 
                 case GateType.NOT:
 
                     SolutionData SolveLeft = Solve(tree.Left);
-                    
-                    if (SolveLeft.mustSet.Merge(SolveLeft.orSet.Not()))
-                    {
-                        SolveLeft = SolutionData.NotSatisfiable();
-                    }
-                    
-                    SolveLeft.mustSet.Not();
-                    SolveLeft.satisfiction = CSaticfiction.NOT(SolveLeft.satisfiction);
+                    SolveLeft.GroupSet.Not();
 
-                    return SolveLeft;
+                    sol = new SolutionData()
+                    {
+                        Satisfiction = tree.Root ? SolveLeft.GroupSet.IsSatisfiable(vars) : null,
+                        GroupSet = SolveLeft.GroupSet,
+                    };
+
+                    break;
+
+                default:
+                    throw new Exception("Invalid gate type");
             }
+
+            if (tree.Root)
+            {
+                sol.Satisfiction = sol.IsSatisfiable();
+            }
+
+            if (tree.Literal.Length >= MinimumExpressionLengthRequiredForCaching)
+            {
+                cache.Add(tree.Literal, sol);
+            }
+            return sol;
 
             throw new Exception("Impossible possibily!");
         }

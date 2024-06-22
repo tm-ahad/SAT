@@ -2,25 +2,18 @@
 {
     public class SolutionData
     {
-        public required HashSet<string> Variables;
-        public required ESaticfiction satisfiction;
-        public required StrictRequirement mustSet;
-        public required OptionalRequirement orSet;
+        public required bool? Satisfiction { get; set; }
+        public required GroupSet GroupSet { get; set; }
 
         public static SolutionData NotSatisfiable()
         {
             return new SolutionData()
             {
-                satisfiction = ESaticfiction.None,
-                mustSet = new StrictRequirement(),
-                orSet = new OptionalRequirement(),
-                Variables = []
+                Satisfiction = false,
+                GroupSet = new()
             };
         }
 
-        public bool isSatisfiable()
-        {
-            return CSaticfiction.isSatisfiable(satisfiction);
-        }
+        public bool? IsSatisfiable() => Satisfiction;
     }
 }
