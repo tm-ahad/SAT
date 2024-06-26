@@ -87,7 +87,6 @@
             {
                 if (other.Contains(e)) 
                 {
-                    Console.WriteLine("BRUH NIGGLAR");
                     return false;
                 };
             }
