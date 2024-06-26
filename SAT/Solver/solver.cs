@@ -6,16 +6,6 @@ namespace SAT.Solver
     {
         private readonly int vars = _vars;
 
-        public static void PrintSet(HashSet<string> set)
-        {
-            foreach (var item in set)
-            {
-                Console.Write(item);
-                Console.Write(' ');
-            }
-            Console.WriteLine();
-        }
-
         public static string InvertS(string s) 
         {
             if (s.StartsWith('!'))
