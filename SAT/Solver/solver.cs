@@ -4,9 +4,17 @@ namespace SAT.Solver
 {
     public class CSolver(int _vars)
     {
-        private const uint MinimumExpressionLengthRequiredForCaching = 5;
-        private readonly Dictionary<string, SolutionData> cache = [];
         private readonly int vars = _vars;
+
+        public static void PrintSet(HashSet<string> set)
+        {
+            foreach (var item in set)
+            {
+                Console.Write(item);
+                Console.Write(' ');
+            }
+            Console.WriteLine();
+        }
 
         public static string InvertS(string s) 
         {
@@ -24,8 +32,7 @@ namespace SAT.Solver
         {
             if (tree.Variable != null)
             {
-                GroupSet gr = new();
-                gr.AddInclsive(tree.Variable);
+                GroupSet gr = new(tree.Variable.ToString());
 
                 return new SolutionData()
                 {
@@ -34,15 +41,11 @@ namespace SAT.Solver
                 };
             }
 
-            if (cache.TryGetValue(tree.Literal, out SolutionData sol))
-            {
-                return sol;
-            }
+            SolutionData sol;
 
             switch (tree.Type)
             {
                 case GateType.AND:
-
                     SolutionData leftSol = Solve(tree.Left);
                     SolutionData rightSol = Solve(tree.Right);
 
@@ -91,10 +94,6 @@ namespace SAT.Solver
                 sol.Satisfiction = sol.IsSatisfiable();
             }
 
-            if (tree.Literal.Length >= MinimumExpressionLengthRequiredForCaching)
-            {
-                cache.Add(tree.Literal, sol);
-            }
             return sol;
 
             throw new Exception("Impossible possibily!");

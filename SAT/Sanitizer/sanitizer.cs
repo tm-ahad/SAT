@@ -15,15 +15,24 @@ namespace SAT.Sanitizer
 
                 if (char.IsLetter(char.ToLower(c)))
                 {
-                    ret.Append(low);
-                    streak = (char)((byte)streak + 1);
+                    if (c < streak)
+                    {
+                        ret.Append(c);
+                    }
+                    else
+                    {
+                        ret.Append(streak);
+                        streak = (char)((byte)streak + 1);
+                    }
                 } 
                 else if (char.IsWhiteSpace(c))
                 {
                     continue;
                 }
-
-                ret.Append(c);
+                else
+                {
+                    ret.Append(low);
+                }
             }
 
             return ret.ToString();

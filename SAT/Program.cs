@@ -15,6 +15,12 @@ while (true)
     Console.Write(">> ");
 
     string? formula = Console.ReadLine();
+
+    if (formula == "exit")
+    {
+        Environment.Exit(0);
+    }
+
     Stopwatch sw = Stopwatch.StartNew();
 
     CGate tree = CFormulaParser.Parse(formula);

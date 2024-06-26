@@ -1,9 +1,9 @@
 ﻿namespace SAT.Solver
 {
-    public class GroupSet
+    public class GroupSet(string inc)
     {
-        private List<HashSet<string>> xclusive = [];
-        private List<HashSet<string>> inclusive = [];
+        private List<HashSet<string>> xclusive = [[]];
+        private List<HashSet<string>> inclusive = [[inc]];
 
         private static HashSet<string> AddToGroup(HashSet<string> group, string a)
         {
@@ -36,7 +36,7 @@
             return large;
         }
 
-        private static List<HashSet<string>> MultiplyGroupSet(List<HashSet<string>> gs1, List<HashSet<string>> gs2) 
+        private static List<HashSet<string>> MultiplyGroupSet(List<HashSet<string>> gs1, List<HashSet<string>> gs2)
         {
             List<HashSet<string>> mgs = [];
 
@@ -44,14 +44,25 @@
             {
                 foreach (HashSet<string> g2 in gs2)
                 {
-                    mgs.Add(UnionGroupSet(g1, g2));
+                    HashSet<string> union = UnionGroupSet(g1, g2);
+                    if (union.Count != 0) mgs.Add(union);
                 }
             }
 
             return mgs;
         }
 
-        private static List<HashSet<string>> AddGroupSet(List<HashSet<string>> gs1, List<HashSet<string>> gs2) => [..gs1, ..gs2];
+        private static List<HashSet<string>> AddGroupSet(List<HashSet<string>> gs1, List<HashSet<string>> gs2)
+        {
+            if (gs1[0].Count == 0 || gs2[0].Count == 0)
+            {
+                return gs1[0].Count == 0 ? gs2 : gs1;
+            }
+            else
+            {
+                return [.. gs1, .. gs2];
+            }
+        }
 
         public void Or(GroupSet b) 
         {
@@ -66,7 +77,6 @@
         }
 
         public void Not() => (xclusive, inclusive) = (inclusive, xclusive);
-        public void AddInclsive(string a) => inclusive.Add([a]);
 
         public bool IsSatisfiable(int vars)
         {
@@ -75,7 +85,11 @@
 
             foreach (HashSet<string> e in small)
             {
-                if (other.Contains(e)) return false;
+                if (other.Contains(e)) 
+                {
+                    Console.WriteLine("BRUH NIGGLAR");
+                    return false;
+                };
             }
 
             if (inclusive.Count > 0) return true;
@@ -83,10 +97,10 @@
             var xclusiveCount = 0;
             foreach (HashSet<string> g in xclusive)
             {
-                xclusiveCount += 1 >> (vars - g.Count());
+                xclusiveCount += 1 >> (vars - g.Count);
             }
 
-            return xclusiveCount < (1 >> vars);
+            return xclusiveCount < (1 << vars);
         }
     }
 }

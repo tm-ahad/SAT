@@ -12,10 +12,10 @@ namespace SAT.FormulaParser
             {'!', GateType.NOT}
         };
 
-        public static GateType FromOperator(char op)
+        public static GateType? TryGetOperator(char op)
         {
             if (OperatorMappings.TryGetValue(op, out GateType value)) return value;
-            throw new ArgumentException($"Invalid boolean operator '{op}'");
+            return null;
         }
 
         public static CGate Parse(string? formula)
@@ -23,156 +23,95 @@ namespace SAT.FormulaParser
             if (string.IsNullOrEmpty(formula)) throw new Exception("Empty formula is not allowed");
             formula = CSanitizer.Sanitize(formula);
 
-            return ParseFormula(formula);
+            Tuple<CGate, int> ret = ParseFormula(formula);
+            CGate final = ret.Item1;
+            int variables = ret.Item2;
+
+            final.Variables = variables;
+            final.Root = true;
+
+            return final;
         }
 
-        private static CGate ParseFormula(string formula)
+        private static Tuple<CGate, int> ParseFormula(string formula)
         {
-            HashSet<char> variables = new();
-            Stack<char> operators = new();
-            Stack<int> parenStack = new();
-            Stack<CGate> gates = new();
+            List<GateType> operators = [];
 
-            for (int i = 0; i < formula.Length; i++)
+            HashSet<char> variables = [];
+            List<CGate> gates = [];
+
+            int i = 0;
+
+            while (i < formula.Length)
             {
-                char ch = formula[i];
+                char c = formula[i];
+                GateType? op = TryGetOperator(c);
 
-                if (char.IsWhiteSpace(ch))
+                if (char.IsLetter(c))
                 {
-                    continue;
+                    gates.Add(new CGate(GateType.VARIABLE) { Variable = c });
+                    variables.Add(c);
                 }
-                else if (ch == '(')
+                else if (op != null)
                 {
-                    parenStack.Push(i);
+                    operators.Add((GateType)op);
                 }
-                else if (ch == ')')
+                else if (c == '(')
                 {
-                    if (parenStack.Count == 0)
-                    {
-                        throw new ArgumentException($"Mismatched parentheses at position {i}");
-                    }
+                    int subStart = i + 1;
+                    int subEnd = FindClosingParenthesis(formula, subStart);
 
-                    int start = parenStack.Pop();
-                    string subformula = formula.Substring(start + 1, i - start - 1);
-                    CGate gate = ParseFormula(subformula);
-                    gates.Push(gate);
+                    string subformula = formula.Substring(subStart, subEnd - subStart);
+                    gates.Add(ParseFormula(subformula).Item1);
+
+                    i = subEnd;
                 }
-                else if (OperatorMappings.ContainsKey(ch))
+                i++;
+            }
+
+            if (gates.Count == 0)
+                throw new Exception("No gates found in the formula");
+
+            CGate final = BuildGateStructure(gates, operators);
+            return Tuple.Create(final, variables.Count);
+        }
+
+        private static int FindClosingParenthesis(string formula, int start)
+        {
+            int depth = 1;
+            for (int i = start; i < formula.Length; i++)
+            {
+                if (formula[i] == '(') depth++;
+                else if (formula[i] == ')') depth--;
+                if (depth == 0) return i;
+            }
+            throw new Exception("Unbalanced parentheses in formula");
+        }
+
+        private static CGate BuildGateStructure(List<CGate> gates, List<GateType> operators)
+        {
+            CGate final = null;
+
+            for (int i = 0; i < operators.Count; i++)
+            {
+                if (final != null)
                 {
-                    if (ch == '!')
-                    {
-                        ParseNotOperator(formula, ref i, gates);
-                    }
-                    else
-                    {
-                        while (operators.Count > 0 && Priority(operators.Peek()) >= Priority(ch))
-                        {
-                            CreateGateFromStacks(operators, gates);
-                        }
-                        operators.Push(ch);
-                    }
-                }
-                else if (char.IsLetter(ch))
-                {
-                    variables.Add(ch);
-                    gates.Push(new CGate(GateType.VARIABLE)
-                    {
-                        Variable = ch.ToString(),
-                        Literal = ch.ToString()
-                    });
+                    CGate? leftPart = i + 1 < gates.Count ? gates[i] : null;
+                    final = new CGate(operators[i]) { Left = leftPart, Right = final };
                 }
                 else
                 {
-                    throw new ArgumentException($"Unexpected character '{ch}' in formula at position {i}");
+                    CGate? rightPart = 1 < gates.Count ? gates[1] : null;
+                    final = new CGate(operators[i]) { Left = gates[0], Right = rightPart };
                 }
             }
 
-            while (operators.Count > 0)
+            if (final == null)
             {
-                CreateGateFromStacks(operators, gates);
+                return gates[0];
             }
 
-            if (gates.Count != 1)
-            {
-                throw new Exception("Error parsing formula");
-            }
-
-            CGate tree = gates.Pop();
-            tree.Variables = variables.Count;
-            tree.Root = true;
-
-            return tree;
-        }
-
-        private static void CreateGateFromStacks(Stack<char> operators, Stack<CGate> gates)
-        {
-            char op = operators.Pop();
-            CGate right = gates.Pop();
-            CGate left = gates.Pop();
-
-            gates.Push(new CGate(FromOperator(op))
-            {
-                Literal = $"{left.Literal}{op}{right.Literal}",
-                Left = left,
-                Right = right
-            });
-        }
-
-        private static void ParseNotOperator(string formula, ref int i, Stack<CGate> gates)
-        {
-            if (i + 1 < formula.Length && formula[i + 1] == '(')
-            {
-                int end = FindMatchingParenthesis(formula, i + 1);
-                string subformula = formula.Substring(i + 2, end - i - 2);
-                CGate gate = ParseFormula(subformula);
-                gates.Push(new CGate(GateType.NOT)
-                {
-                    Literal = $"!{gate.Literal}",
-                    Left = gate
-                });
-                i = end;
-            }
-            else
-            {
-                if (i + 1 >= formula.Length || !char.IsLetter(formula[i + 1]))
-                {
-                    throw new ArgumentException($"Invalid syntax after NOT operator at position {i}");
-                }
-
-                i++;
-                gates.Push(new CGate(GateType.NOT)
-                {
-                    Literal = $"!{formula[i]}",
-                    Left = new CGate(GateType.VARIABLE)
-                    {
-                        Variable = formula[i].ToString(),
-                        Literal = formula[i].ToString()
-                    }
-                });
-            }
-        }
-
-        private static int FindMatchingParenthesis(string formula, int startIndex)
-        {
-            int depth = 1;
-            for (int i = startIndex + 1; i < formula.Length; i++)
-            {
-                if (formula[i] == '(') depth++;
-                if (formula[i] == ')') depth--;
-                if (depth == 0) return i;
-            }
-            throw new ArgumentException("No matching closing parenthesis found");
-        }
-
-        private static int Priority(char op)
-        {
-            return op switch
-            {
-                '|' => 1,
-                '&' => 2,
-                '!' => 3,
-                _ => throw new ArgumentException($"Invalid operator '{op}'")
-            };
+            return final;
         }
     }
 }
