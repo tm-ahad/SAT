@@ -8,5 +8,7 @@
         public CGate? Left { get; set; }
         public int Variables { get; set; }
         public bool Root { get; set; }
+
+        public override string ToString() => $"{Type} {Variable}";
     }
 }

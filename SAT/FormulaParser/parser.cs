@@ -1,5 +1,4 @@
-﻿using SAT.Sanitizer;
-using SAT.Gate;
+﻿using SAT.Gate;
 
 namespace SAT.FormulaParser
 {
@@ -21,7 +20,8 @@ namespace SAT.FormulaParser
         public static CGate Parse(string? formula)
         {
             if (string.IsNullOrEmpty(formula)) throw new Exception("Empty formula is not allowed");
-            formula = CSanitizer.Sanitize(formula);
+            formula = formula.Replace(" ", "");
+            Console.WriteLine(formula);
 
             Tuple<CGate, int> ret = ParseFormula(formula);
             CGate final = ret.Item1;
@@ -66,6 +66,10 @@ namespace SAT.FormulaParser
 
                     i = subEnd;
                 }
+                else if (c != ')') 
+                {
+                    throw new Exception($"Invalid character {c}.");
+                }
                 i++;
             }
 
@@ -96,7 +100,7 @@ namespace SAT.FormulaParser
             {
                 if (final != null)
                 {
-                    CGate? leftPart = i + 1 < gates.Count ? gates[i] : null;
+                    CGate? leftPart = i + 1 < gates.Count ? gates[i+1] : null;
                     final = new CGate(operators[i]) { Left = leftPart, Right = final };
                 }
                 else

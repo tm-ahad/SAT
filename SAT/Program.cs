@@ -3,7 +3,8 @@ using System.Diagnostics;
 using SAT.Solver;
 using SAT.Gate;
 
-Console.WriteLine("Polynomial solution for satisfibility (A.K.A SAT) problem\n");
+Console.WriteLine("Polynomial solution for satisfibility (A.K.A SAT) problem");
+Console.WriteLine("Enter 'exit' or '1' to exit the program");
 Console.WriteLine("Operators - ");
 Console.WriteLine("| is used as the OR operator.");
 Console.WriteLine("& is used as the AND operator.");
@@ -15,8 +16,7 @@ while (true)
     Console.Write(">> ");
 
     string? formula = Console.ReadLine();
-
-    if (formula == "exit")
+    if (formula.ToLower() == "exit" || formula == "1")
     {
         Environment.Exit(0);
     }
@@ -24,6 +24,7 @@ while (true)
     Stopwatch sw = Stopwatch.StartNew();
 
     CGate tree = CFormulaParser.Parse(formula);
+    tree.Print();
     CSolver solver = new(tree.Variables);
 
     bool? sat = solver.Solve(tree).IsSatisfiable();

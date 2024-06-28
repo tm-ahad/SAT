@@ -2,7 +2,7 @@
 {
     public class GroupSet(string inc)
     {
-        private List<HashSet<string>> xclusive = [[]];
+        private List<HashSet<string>> xclusive = [[CSolver.InvertS(inc)]];
         private List<HashSet<string>> inclusive = [[inc]];
 
         private static HashSet<string> AddToGroup(HashSet<string> group, string a)
@@ -80,26 +80,12 @@
 
         public bool IsSatisfiable(int vars)
         {
-            List<HashSet<string>> small = inclusive.Count < xclusive.Count ? inclusive : xclusive;
-            List<HashSet<string>> other = small == inclusive ? xclusive : inclusive;
-
-            foreach (HashSet<string> e in small)
+            if (inclusive.Count == 0)
             {
-                if (other.Contains(e)) 
-                {
-                    return false;
-                };
+                return false;
             }
 
-            if (inclusive.Count > 0) return true;
-
-            var xclusiveCount = 0;
-            foreach (HashSet<string> g in xclusive)
-            {
-                xclusiveCount += 1 >> (vars - g.Count);
-            }
-
-            return xclusiveCount < (1 << vars);
+            return true;
         }
     }
 }
