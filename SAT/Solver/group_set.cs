@@ -2,8 +2,8 @@
 {
     public class GroupSet(string inc)
     {
-        private List<HashSet<string>> xclusive = [[CSolver.InvertS(inc)]];
-        private List<HashSet<string>> inclusive = [[inc]];
+        private HashSet<HashSet<string>> xclusive = [[CSolver.InvertS(inc)]];
+        private HashSet<HashSet<string>> inclusive = [[inc]];
 
         private static HashSet<string> AddToGroup(HashSet<string> group, string a)
         {
@@ -36,9 +36,9 @@
             return large;
         }
 
-        private static List<HashSet<string>> MultiplyGroupSet(List<HashSet<string>> gs1, List<HashSet<string>> gs2)
+        private static HashSet<HashSet<string>> MultiplyGroupSet(HashSet<HashSet<string>> gs1, HashSet<HashSet<string>> gs2)
         {
-            List<HashSet<string>> mgs = [];
+            HashSet<HashSet<string>> mgs = [];
 
             foreach (HashSet<string> g1 in gs1)
             {
@@ -52,16 +52,16 @@
             return mgs;
         }
 
-        private static List<HashSet<string>> AddGroupSet(List<HashSet<string>> gs1, List<HashSet<string>> gs2)
+        private static HashSet<HashSet<string>> AddGroupSet(HashSet<HashSet<string>> gs1, HashSet<HashSet<string>> gs2)
         {
-            if (gs1[0].Count == 0 || gs2[0].Count == 0)
+            HashSet<HashSet<string>> content = gs1.Union(gs2).ToHashSet();
+
+            if (content.Count > 1)
             {
-                return gs1[0].Count == 0 ? gs2 : gs1;
+                content.Remove([]);
             }
-            else
-            {
-                return [.. gs1, .. gs2];
-            }
+
+            return content;
         }
 
         public void Or(GroupSet b) 
@@ -78,14 +78,14 @@
 
         public void Not() => (xclusive, inclusive) = (inclusive, xclusive);
 
-        public bool IsSatisfiable(int vars)
+        public bool IsSatisfiable()
         {
-            if (inclusive.Count == 0)
+            if (inclusive.Count == 0 || inclusive.IsSubsetOf(xclusive))
             {
                 return false;
             }
 
             return true;
-        }
+        } 
     }
 }

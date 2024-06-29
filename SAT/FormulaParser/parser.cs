@@ -21,23 +21,16 @@ namespace SAT.FormulaParser
         {
             if (string.IsNullOrEmpty(formula)) throw new Exception("Empty formula is not allowed");
             formula = formula.Replace(" ", "");
-            Console.WriteLine(formula);
 
-            Tuple<CGate, int> ret = ParseFormula(formula);
-            CGate final = ret.Item1;
-            int variables = ret.Item2;
+            CGate ret = ParseFormula(formula);
+            ret.Root = true;
 
-            final.Variables = variables;
-            final.Root = true;
-
-            return final;
+            return ret;
         }
 
-        private static Tuple<CGate, int> ParseFormula(string formula)
+        private static CGate ParseFormula(string formula)
         {
             List<GateType> operators = [];
-
-            HashSet<char> variables = [];
             List<CGate> gates = [];
 
             int i = 0;
@@ -50,7 +43,6 @@ namespace SAT.FormulaParser
                 if (char.IsLetter(c))
                 {
                     gates.Add(new CGate(GateType.VARIABLE) { Variable = c });
-                    variables.Add(c);
                 }
                 else if (op != null)
                 {
@@ -62,7 +54,7 @@ namespace SAT.FormulaParser
                     int subEnd = FindClosingParenthesis(formula, subStart);
 
                     string subformula = formula.Substring(subStart, subEnd - subStart);
-                    gates.Add(ParseFormula(subformula).Item1);
+                    gates.Add(ParseFormula(subformula));
 
                     i = subEnd;
                 }
@@ -77,7 +69,7 @@ namespace SAT.FormulaParser
                 throw new Exception("No gates found in the formula");
 
             CGate final = BuildGateStructure(gates, operators);
-            return Tuple.Create(final, variables.Count);
+            return final;
         }
 
         private static int FindClosingParenthesis(string formula, int start)

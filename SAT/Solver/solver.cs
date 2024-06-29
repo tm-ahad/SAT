@@ -2,10 +2,8 @@
 
 namespace SAT.Solver
 {
-    public class CSolver(int _vars)
+    public class CSolver
     {
-        private readonly int vars = _vars;
-
         public static string InvertS(string s) 
         {
             if (s.StartsWith('!'))
@@ -43,7 +41,7 @@ namespace SAT.Solver
 
                     sol = new SolutionData()
                     {
-                        Satisfiction = tree.Root ? leftSol.GroupSet.IsSatisfiable(vars) : null,
+                        Satisfiction = tree.Root ? leftSol.GroupSet.IsSatisfiable() : null,
                         GroupSet = leftSol.GroupSet,
                     };
                     break;
@@ -57,7 +55,7 @@ namespace SAT.Solver
 
                     sol = new SolutionData()
                     {
-                        Satisfiction = tree.Root ? leftSol_.GroupSet.IsSatisfiable(vars) : null,
+                        Satisfiction = tree.Root ? leftSol_.GroupSet.IsSatisfiable() : null,
                         GroupSet = leftSol_.GroupSet,
                     };
                     break;
@@ -69,7 +67,7 @@ namespace SAT.Solver
 
                     sol = new SolutionData()
                     {
-                        Satisfiction = tree.Root ? SolveLeft.GroupSet.IsSatisfiable(vars) : null,
+                        Satisfiction = tree.Root ? SolveLeft.GroupSet.IsSatisfiable() : null,
                         GroupSet = SolveLeft.GroupSet,
                     };
 
