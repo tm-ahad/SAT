@@ -7,7 +7,5 @@
         public CGate? Right { get; set; }
         public CGate? Left { get; set; }
         public bool Root { get; set; }
-
-        public override string ToString() => $"{Type} {Variable}";
     }
 }

@@ -75,7 +75,6 @@ namespace SAT.Solver
 
                 default:
                     throw new Exception("Invalid gate type");
-                    
             }
 
             if (tree.Root)
