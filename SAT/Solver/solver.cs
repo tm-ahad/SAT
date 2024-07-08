@@ -51,6 +51,15 @@ namespace SAT.Solver
                     SolutionData leftSol_ = Solve(tree.Left);
                     SolutionData rightSol_ = Solve(tree.Right);
 
+                    if (tree.Root)
+                    {
+                        return new SolutionData()
+                        {
+                            Satisfiction = leftSol_.IsSatisfiable() || rightSol_.IsSatisfiable(),
+                            GroupSet = new GroupSet("")
+                        };
+                    }
+
                     leftSol_.GroupSet.Or(rightSol_.GroupSet);
 
                     sol = new SolutionData()

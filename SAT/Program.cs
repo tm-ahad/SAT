@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using SAT.Solver;
 using SAT.Gate;
+using SAT.Info;
 
 public class Program
 {
@@ -9,12 +10,7 @@ public class Program
     {
         if (args.Length == 0 || args[0].ToLower() == "help")
         {
-            Console.WriteLine("Polynomial solution for satisfibility (A.K.A SAT) problem");
-            Console.WriteLine("Operators - ");
-            Console.WriteLine("| is used as the OR operator.");
-            Console.WriteLine("& is used as the AND operator.");
-            Console.WriteLine("! is used as the NOT operator.");
-            Console.WriteLine("( and ) is used as brackets.");
+            Info.Print();
             return;
         }
 
