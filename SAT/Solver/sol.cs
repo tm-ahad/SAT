@@ -3,8 +3,8 @@
     public class SolutionData
     {
         public required bool? Satisfiction { get; set; }
-        public required GroupSet GroupSet { get; set; }  
+        public required GroupSet GroupSet { get; set; }
 
-        public bool IsSatisfiable() => (bool)Satisfiction;
+        public bool IsSatisfiable() => Satisfiction ?? GroupSet.IsSatisfiable();
     }
 }

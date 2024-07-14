@@ -3,8 +3,26 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
+    
     <Nullable>enable</Nullable>
     <PublishAot>true</PublishAot>
+    
+    <PublishTrimmed>true</PublishTrimmed>
     <PublishReadyToRun>false</PublishReadyToRun>
+
+    <Optimize>true</Optimize>
+    <SelfContained>true</SelfContained>
+
+    <EnableWindowsFormsHighDpiAutoResizing>true</EnableWindowsFormsHighDpiAutoResizing>
+    <AssemblyTitle>MyApplication</AssemblyTitle>
+
+    <AssemblyDescription>A polynomial time SAT solver using the GSS algorihtm</AssemblyDescription>
+    <Company>MyCompany</Company>
+
+    <Product>MyProduct</Product>
+    <Authors>T.M Ahad</Authors>
+
+    <Copyright>Copyright © 2024</Copyright>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
   </PropertyGroup>
 </Project>

@@ -77,6 +77,6 @@
         }
 
         public void Not() => (xclusive, inclusive) = (inclusive, xclusive);
-        public bool IsSatisfiable() => !(inclusive.Count == 0 || inclusive.IsSubsetOf(xclusive));
+        public bool IsSatisfiable() => !inclusive.IsSubsetOf(xclusive);
     }
 }
